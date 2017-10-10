@@ -1,17 +1,32 @@
+# Blacklist
+branches:
+  except:
+  - gh-pages
+
 services:
 - docker
 
 # Don't assume ruby.
 language: generic
 
+# Setup docker image
 before_install:
 - docker build -t tor2web .
-- echo CID=`docker run -d tor2web tail -f /dev/null` | tee cid
+- printf 'export GH_REPO_REF=github.com/cheako/Tor2web-1.git CID=%s\n' "`docker run -d tor2web /usr/local/bin/boot-debian-base`" | tee cid
+- . cid; docker exec $CID /bin/sh -c 'cd /usr/src/github/Tor2web/t; bin/user-start.sh;'
+
+# Install tor2web
+before_script:
+- . cid; docker exec $CID /bin/sh -c 'cd /usr/src/github/Tor2web; python2 setup.py install'
 
 script:
 # - scripts/travis.sh
-- . cid; docker exec -e TTWLANG=python $CID /bin/sh -c 'cd /usr/src/github/Tor2web; python2 setup.py install && { prove -v -f t/tx || true; prove -f; }'
+# Run extra tests
+- . cid; docker exec -e TTW_TARGET=python $CID /bin/sh -c 'cd /usr/src/github/Tor2web; for ech in t/tx/*.t; do echo $ech .; perl $ech; done || true'
+
+# Run the actual tests
+- . cid; docker exec -e TTW_TARGET=python $CID /bin/sh -c 'cd /usr/src/github/Tor2web; for ech in t/*.t; do echo $ech .; perl $ech; done'
 
 # Generate and deploy documentation
 after_success:
-- . cid; docker exec `./.codecov-env.sh` $CID /bin/sh -c 'cd /usr/src/github/Tor2web; head /dev/null .coverage*; python-coverage combine; python-coverage xml -i; head /dev/null .coverage*; codecov -X gcov'
+- . cid; docker exec `./.codecov-env.sh` $CID /bin/sh -c 'cd /usr/src/github/Tor2web; python-coverage combine; python-coverage xml -i; codecov -X gcov'
