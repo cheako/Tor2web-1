@@ -19,13 +19,18 @@ before_install:
 before_script:
 - . cid; docker exec $CID /bin/sh -c 'cd /usr/src/github/Tor2web; python2 setup.py install'
 
+env:
+- PROVEDIR="t"
+- PROVEDIR="t/tx"
+
+matrix: 
+  allow_failures: 
+  - env: PROVEDIR="t/tx"
+
 script:
 # - scripts/travis.sh
 # Run extra tests
-- . cid; docker exec -e TTW_TARGET=python $CID /bin/sh -c 'cd /usr/src/github/Tor2web; for ech in t/tx/*.t; do echo $ech .; perl $ech; done || true'
-
-# Run the actual tests
-- . cid; docker exec -e TTW_TARGET=python $CID /bin/sh -c 'cd /usr/src/github/Tor2web; for ech in t/*.t; do echo $ech .; perl $ech; done'
+- . cid; docker exec -e TTW_TARGET=python $CID /bin/sh -c 'cd /usr/src/github/Tor2web; for ech in '"$PROVEDIR"'/*.t; do echo $ech .; perl $ech; done || true'
 
 # Generate and deploy documentation
 after_success:
