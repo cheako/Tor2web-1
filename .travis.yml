@@ -30,7 +30,7 @@ matrix:
 script:
 # - scripts/travis.sh
 # Run extra tests
-- . cid; docker exec -e TTW_TARGET=python $CID /bin/sh -c 'cd /usr/src/github/Tor2web; for ech in '"$PROVEDIR"'/*.t; do echo $ech .; perl $ech; done || true'
+- . cid; docker exec -e TTW_TARGET=python $CID /bin/sh -c 'cd /usr/src/github/Tor2web; for ech in '"$PROVEDIR"'/*.t; do echo $ech .; perl $ech; done'
 
 # Generate and deploy documentation
 after_success:
